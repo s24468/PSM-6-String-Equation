@@ -1,0 +1,32 @@
+﻿Zadanie 6
+Rozwiązać równanie struny:
+𝜕^2𝑦(𝑥,𝑡)/𝜕𝑡^2 = 𝑐^2 𝜕^2𝑦(𝑥,𝑡)/𝜕𝑥^2
+Gdzie 𝑦(𝑥,𝑡) 𝑜𝑘𝑟𝑒ś𝑙𝑎 𝑘𝑠𝑧𝑡𝑎ł𝑡 𝑠𝑡𝑟𝑢𝑛𝑦 𝑤 𝑐ℎ𝑤𝑖𝑙𝑖 𝑡
+Na potrzeby rozwiązania przyjmujemy c=1 (c prędkość propagacji fali)
+
+Prawą stronę:
+𝜕^2𝑦(𝑥,𝑡)/𝜕𝑥^2
+
+Przybliżamy:
+𝜕^2𝑦(𝑥,𝑡)/𝜕𝑥^2 = (𝑦(𝑥𝑖−1,𝑡) − 2 ∗ 𝑦(𝑥𝑖,𝑡) + 𝑦(𝑥𝑖+1,𝑡))/∆𝑥^2 = 𝑎(𝑥𝑖,𝑡)
+
+L – długość struny (π)
+N – na ile części dzielimy (np=10)
+∆𝑥 = 𝐿/𝑁
+Dla każdego punktu struny rozwiązujemy równanie ruchu metodą MidPoint:
+
+𝑑𝑦/𝑑𝑡 = 𝑣
+𝑑𝑣/𝑑𝑡 = 𝑎
+Struna jest zamocowana na końcach
+
+
+
+
+
+Wyznaczyć energię potencjalną, kinetyczną oraz całkowitą struny:
+
+Ek,Ep suma energii poszczególnych punktów
+
+𝐸𝑘 = ∑(𝑑𝑥 ∗ 𝑉^2(𝑥𝑖)/2)
+
+𝐸𝑝 = ∑((𝑦(𝑥𝑖+1) − 𝑦(𝑥𝑖))^2)/2∆x
