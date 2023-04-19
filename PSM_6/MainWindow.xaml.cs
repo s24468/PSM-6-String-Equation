@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Threading;
+using System.Windows.Controls;
 using LiveCharts;
 using LiveCharts.Defaults;
 using LiveCharts.Wpf;
@@ -10,14 +12,21 @@ namespace PSM_6
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    /// 
+    ///
+    ///
     public partial class MainWindow
     {
         private readonly DispatcherTimer _timer;
+        private readonly SeriesCollection _seriesCollection2;
+        private readonly SeriesCollection _seriesCollection1;
+        private CartesianChart cartesianChart; // Przenieś wykres jako zmienną składową klasy
 
-        // private ChartValues<ObservablePoint> chart;
+
+        private bool _isFirstChart;
+
         private ChartValues<double> chart;
-        private LineSeries lineSeries;
+        private ChartValues<double> chart2;
+        // private LineSeries lineSeries;
         const int N = 10;
         const double L = Math.PI;
         const double dx = L / N;
@@ -32,18 +41,40 @@ namespace PSM_6
             //     { new ObservablePoint(1, 1), new ObservablePoint(2, 2), new ObservablePoint(3, 3) };
             chart = new ChartValues<double>()
                 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-            lineSeries = new LineSeries()
+            chart2 = new ChartValues<double>()
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            _seriesCollection1 = new SeriesCollection()
             {
-                Title = "Wave",
-                Values = chart,
-                PointGeometry = null // Usuwa punkty z wykresu
+                new LineSeries()
+                {
+                    Title = "Wave",
+                    Values = chart,
+                    PointGeometry = null // Usuwa punkty z wykresu
+                }
+            };
+            _seriesCollection2 = new SeriesCollection()
+            {
+                new LineSeries
+                {
+                    Title = "Energy",
+                    Values = chart2,
+                    PointGeometry = null // Usuwa punkty z wykresu
+                }
             };
 
-            var serial = new SeriesCollection() { lineSeries };
-            var cartesianChart = new CartesianChart()
+
+            _isFirstChart = true;
+            Button switchButton = new Button
             {
-                Series = serial,
+                Content = "Change Chart",
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(10)
+            };
+            switchButton.Click += SwitchButton_Click;
+            cartesianChart = new CartesianChart()
+            {
+                Series = _seriesCollection1,
                 AxisX = new AxesCollection
                 {
                     new Axis
@@ -59,9 +90,16 @@ namespace PSM_6
                         MinValue = -1,
                         MaxValue = 1 // Ustaw maksymalną wartość dla osi Y
                     }
-                }
+                },
+                Margin = new Thickness(0, 50, 0, 0) // Dodaj margines na górze, aby przycisk był widoczny
             };
-            Content = cartesianChart;
+            // Dodaj przycisk i wykres do Grid
+            Grid grid = (Grid)Content;
+            grid.Children.Add(switchButton);
+            grid.Children.Add(cartesianChart);
+            // Content = cartesianChart;
+
+
             double[] y = new double[N + 1];
             double[] v = new double[N + 1];
             double[] a = new double[N + 1];
@@ -75,7 +113,7 @@ namespace PSM_6
             }
 
 
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.1) };
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.3) };
             _timer.Tick += (sender, e) =>
             {
                 for (int i = 1; i < N; i++)
@@ -106,6 +144,12 @@ namespace PSM_6
                 }
             };
             _timer.Start();
+        }
+
+        private void SwitchButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isFirstChart = !_isFirstChart;
+            cartesianChart.Series = _isFirstChart ? _seriesCollection1 : _seriesCollection2;
         }
 
         // private void Timer_Tick(object sender, EventArgs e)
