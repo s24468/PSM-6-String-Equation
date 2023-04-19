@@ -1,169 +1,184 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Controls;
 using LiveCharts;
-using LiveCharts.Defaults;
 using LiveCharts.Wpf;
 
 
-namespace PSM_6
+namespace PSM_6;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+///
+///
+public partial class MainWindow
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    ///
-    ///
-    public partial class MainWindow
+    private readonly DispatcherTimer _timer;
+    private readonly SeriesCollection _seriesCollection2;
+    private readonly SeriesCollection _seriesCollection1;
+    private CartesianChart cartesianChart; 
+
+
+    private bool _isFirstChart;
+
+    private ChartValues<double> chart;
+    private ChartValues<double> chart2;
+    const int N = 10;
+    const double L = Math.PI;
+    const double dx = L / N;
+    const double dt = 0.2;
+
+    public MainWindow()
     {
-        private readonly DispatcherTimer _timer;
-        private readonly SeriesCollection _seriesCollection2;
-        private readonly SeriesCollection _seriesCollection1;
-        private CartesianChart cartesianChart; // Przenieś wykres jako zmienną składową klasy
-
-
-        private bool _isFirstChart;
-
-        private ChartValues<double> chart;
-        private ChartValues<double> chart2;
-        // private LineSeries lineSeries;
-        const int N = 10;
-        const double L = Math.PI;
-        const double dx = L / N;
-        const double dt = 0.2;
-        const int timesteps = 200;
-
-        public MainWindow()
+        InitializeComponent();
+        chart = new ChartValues<double>()
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        chart2 = new ChartValues<double>()
+            { 0, 0, 0 };
+        _seriesCollection1 = new SeriesCollection()
         {
-            InitializeComponent();
-            //tworzenie wykresu
-            // chart = new ChartValues<ObservablePoint>()
-            //     { new ObservablePoint(1, 1), new ObservablePoint(2, 2), new ObservablePoint(3, 3) };
-            chart = new ChartValues<double>()
-                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            chart2 = new ChartValues<double>()
-                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            _seriesCollection1 = new SeriesCollection()
+            new LineSeries()
             {
-                new LineSeries()
+                Title = "Wave",
+                Values = chart,
+                PointGeometry = null
+            }
+        };
+        _seriesCollection2 = new SeriesCollection()
+        {
+            new ColumnSeries()
+            {
+                Title = "Energy",
+                Values = chart2,
+                PointGeometry = null 
+            }
+        };
+
+
+        _isFirstChart = true;
+        Button switchButton = new Button
+        {
+            Content = "Change Chart",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(10)
+        };
+        switchButton.Click += SwitchButton_Click;
+        cartesianChart = new CartesianChart()
+        {
+            Series = _seriesCollection1,
+            AxisX = new AxesCollection
+            {
+                new Axis
                 {
-                    Title = "Wave",
-                    Values = chart,
-                    PointGeometry = null // Usuwa punkty z wykresu
+                    MinValue = 0,
+                    MaxValue = 10 
                 }
-            };
-            _seriesCollection2 = new SeriesCollection()
+            },
+            AxisY = new AxesCollection
             {
-                new LineSeries
+                new Axis
                 {
-                    Title = "Energy",
-                    Values = chart2,
-                    PointGeometry = null // Usuwa punkty z wykresu
+                    MinValue = -1,
+                    MaxValue = 1,
+                    LabelFormatter = value => Math.Round(value, 2).ToString() // Zaokrąglij wartości do 2 miejsc po przecinku
+
                 }
-            };
+            },
+            Margin = new Thickness(0, 50, 0, 0)
+        };
+        Grid grid = (Grid)Content;
+        grid.Children.Add(switchButton);
+        grid.Children.Add(cartesianChart);
 
 
-            _isFirstChart = true;
-            Button switchButton = new Button
+        double[] y = new double[N + 1];
+        double[] v = new double[N + 1];
+        double[] a = new double[N + 1];
+        double[] yMid = new double[N + 1];
+        double[] vMid = new double[N + 1];
+
+        for (int i = 0; i <= N; i++)
+        {
+            y[i] = Math.Sin(i * dx);
+            v[i] = 0;
+        }
+
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.6) };
+        _timer.Tick += (sender, e) =>
+        {
+            for (var i = 1; i < N; i++)
             {
-                Content = "Change Chart",
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(10)
-            };
-            switchButton.Click += SwitchButton_Click;
-            cartesianChart = new CartesianChart()
-            {
-                Series = _seriesCollection1,
-                AxisX = new AxesCollection
-                {
-                    new Axis
-                    {
-                        MinValue = 0,
-                        MaxValue = 10 // Ustaw maksymalną wartość dla osi X
-                    }
-                },
-                AxisY = new AxesCollection
-                {
-                    new Axis
-                    {
-                        MinValue = -1,
-                        MaxValue = 1 // Ustaw maksymalną wartość dla osi Y
-                    }
-                },
-                Margin = new Thickness(0, 50, 0, 0) // Dodaj margines na górze, aby przycisk był widoczny
-            };
-            // Dodaj przycisk i wykres do Grid
-            Grid grid = (Grid)Content;
-            grid.Children.Add(switchButton);
-            grid.Children.Add(cartesianChart);
-            // Content = cartesianChart;
-
-
-            double[] y = new double[N + 1];
-            double[] v = new double[N + 1];
-            double[] a = new double[N + 1];
-            double[] yMid = new double[N + 1];
-            double[] vMid = new double[N + 1];
-
-            for (int i = 0; i <= N; i++)
-            {
-                y[i] = Math.Sin(i * dx);
-                v[i] = 0;
+                a[i] = (y[i - 1] - 2 * y[i] + y[i + 1]) / (dx * dx);
             }
 
-
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.3) };
-            _timer.Tick += (sender, e) =>
+            for (var i = 1; i < N; i++)
             {
-                for (int i = 1; i < N; i++)
-                {
-                    a[i] = (y[i - 1] - 2 * y[i] + y[i + 1]) / (dx * dx);
-                }
+                yMid[i] = y[i] + v[i] * dt / 2;
+                vMid[i] = v[i] + a[i] * dt / 2;
+            }
 
-                for (int i = 1; i < N; i++)
-                {
-                    yMid[i] = y[i] + v[i] * dt / 2;
-                    vMid[i] = v[i] + a[i] * dt / 2;
-                }
+            for (var i = 1; i < N; i++)
+            {
+                a[i] = (yMid[i - 1] - 2 * yMid[i] + yMid[i + 1]) / (dx * dx);
+            }
 
-                for (int i = 1; i < N; i++)
-                {
-                    a[i] = (yMid[i - 1] - 2 * yMid[i] + yMid[i + 1]) / (dx * dx);
-                }
+            for (var i = 1; i < N; i++)
+            {
+                y[i] += vMid[i] * dt;
+                v[i] += a[i] * dt;
+            }
 
-                for (int i = 1; i < N; i++)
-                {
-                    y[i] = y[i] + vMid[i] * dt;
-                    v[i] = v[i] + a[i] * dt;
-                }
+            double Ek = 0;
+            double Ep = 0;
+            for (int i = 1; i < N; i++)
+            {
+                Ek += dx * Math.Pow(v[i], 2) / 2;
+                Ep += Math.Pow(y[i + 1] - y[i], 2) / (2 * dx);
+            }
 
-                for (int i = 0; i < N; i++)
-                {
-                    chart[i] = y[i];
-                }
-            };
-            _timer.Start();
-        }
+            double Etotal = Ek + Ep;
 
-        private void SwitchButton_Click(object sender, RoutedEventArgs e)
+            chart2[0] = Ek;
+            chart2[1] = Ep;
+            chart2[2] = Etotal;
+            for (var i = 0; i < N; i++)
+            {
+                chart[i] = y[i];
+            }
+        };
+        _timer.Start();
+    }
+
+    private void SwitchButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isFirstChart = !_isFirstChart;
+        cartesianChart.Series = _isFirstChart ? _seriesCollection1 : _seriesCollection2;
+        if (_isFirstChart)
         {
-            _isFirstChart = !_isFirstChart;
-            cartesianChart.Series = _isFirstChart ? _seriesCollection1 : _seriesCollection2;
+            cartesianChart.AxisX[0].MinValue = 0;
+            cartesianChart.AxisX[0].MaxValue = 10;
+            cartesianChart.AxisY[0].MinValue = -1;
+            cartesianChart.AxisY[0].MaxValue = 1;
+        }
+        else
+        {
+            cartesianChart.AxisX[0].MinValue = 0;
+            cartesianChart.AxisX[0].MaxValue = 3;
+            cartesianChart.AxisY[0].MinValue = 0;
+            cartesianChart.AxisY[0].MaxValue = 1;
         }
 
-        // private void Timer_Tick(object sender, EventArgs e)
-        // {
-        //  }
+        if (_isFirstChart)
+        {
+            cartesianChart.AxisX[0].Labels = new List<string> { "1", "2", "3" };
+        }
+        else
+        {
+            cartesianChart.AxisX[0].Labels = new List<string> { "Ek", "Ep", "Etotal" };
+        }
     }
 }
-
-
-// // Dodaj nowy punkt do wykresu.
-// chart.Add(chart.Count);
-//
-// // Usuń stary punkt z wykresu, jeśli chcesz ograniczyć liczbę widocznych punktów.
-// if (chart.Count > 10)
-// {
-//     chart.RemoveAt(0);
-// }

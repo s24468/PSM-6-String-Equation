@@ -1,8 +1,8 @@
-const int N = 10;
+            const int N = 10;
             const double L = Math.PI;
             const double dx = L / N;
             const double dt = 0.2;
-            const int timesteps = 200;
+            const int timesteps = 100;
 
             double[] y = new double[N + 1];
             double[] v = new double[N + 1];
@@ -41,4 +41,15 @@ const int N = 10;
                     y[i] = y[i] + vMid[i] * dt;
                     v[i] = v[i] + a[i] * dt;
                 }
+                double Ek = 0;
+                double Ep = 0;
+                
+                for (int i = 1; i < N; i++)
+                {
+                    Ek += dx * Math.Pow(v[i], 2) / 2;
+                    Ep += Math.Pow(y[i + 1] - y[i], 2) / (2 * dx);
+                }
+                
+                double Etotal = Ek + Ep;
+                Console.WriteLine($"Energia kinetyczna: {Ek}, Energia potencjalna: {Ep}, Energia całkowita: {Etotal}\n");
             }
